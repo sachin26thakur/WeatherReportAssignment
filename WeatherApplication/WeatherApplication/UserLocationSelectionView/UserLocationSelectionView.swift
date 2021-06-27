@@ -10,6 +10,8 @@ import MapKit
 
 class LocationSelectViewController: UIViewController, UIGestureRecognizerDelegate {
     
+    private var viewModel: UserLocationViewModel?
+    
     @IBOutlet weak private var mapView: MKMapView!
     private var annotation: MKPointAnnotation?
     private let regionRadius: Double = 10000
@@ -27,15 +29,17 @@ class LocationSelectViewController: UIViewController, UIGestureRecognizerDelegat
     override func viewDidLoad() {
         super.viewDidLoad()
         self.navigationController?.navigationBar.topItem?.title = "Bookmark location"
+        self.viewModel = UserLocationViewModel()
         self.mapView.delegate = self
     }
     
-    @IBAction func addLocationActionHandler(_ sender: Any) {
+    @IBAction private func addLocationActionHandler(_ sender: Any) {
         let coordinate = self.mapView.centerCoordinate
         
         // Add annotation:
         self.annotation = MKPointAnnotation()
-        getAddress(coordinate: coordinate) { addressTitle, details  in
+        self.viewModel?.getAddress(coordinate: coordinate) { [weak self] addressTitle, details  in
+            guard let self = self else { return }
             self.annotation?.title = addressTitle
             self.annotation?.subtitle = details
         }
@@ -50,25 +54,25 @@ class LocationSelectViewController: UIViewController, UIGestureRecognizerDelegat
     }
     
     
-    @IBAction func bookMarkLocation(_ sender: Any) {
+    @IBAction private func bookMarkLocation(_ sender: Any) {
         
         if self.toggleFavButton.titleLabel?.text == "Bookmark location" {
-            self.toggleFavButton.setTitle("Remove bookmark", for: .normal)
-            guard let title = self.annotation?.title else { return }
+            let title = self.annotation?.title
             let coordinate = self.annotation?.coordinate
-            self.location = DatabaseManager.shared.saveLocation(locationName: title,
-                                                addressDetails: self.annotation?.subtitle,
-                                                latitude: coordinate?.latitude,
-                                                longitude: coordinate?.longitude)
+            if let result = self.viewModel?.bookMarkLocation(coordinate: coordinate,
+                                             title: title,
+                                             desc: annotation?.subtitle ?? ""), result {
+                self.toggleFavButton.setTitle("Remove bookmark", for: .normal)
+            }
         } else {
-            guard let location = self.location else { return }
-            DatabaseManager.shared.deleteLocation(location)
-            self.toggleFavButton.setTitle("Bookmark location", for: .normal)
+            if let result = self.viewModel?.removeBookMarkLocation(), result {
+                self.toggleFavButton.setTitle("Bookmark location", for: .normal)
+            }
         }
     }
     
     
-    @IBAction func deleteLocation(_ sender: Any) {
+    @IBAction private func deleteLocation(_ sender: Any) {
         self.resetSetup()
     }
     
@@ -90,53 +94,7 @@ class LocationSelectViewController: UIViewController, UIGestureRecognizerDelegat
         self.resetSetup()
     }
     
-    // Using closure
-    func getAddress(coordinate: CLLocationCoordinate2D,
-                    handler: @escaping (String, String) -> Void)
-    {
-
-        let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
-        
-        let geocoder = CLGeocoder()
-            geocoder.reverseGeocodeLocation(location) { (placemarksArray, error) in
-                print(placemarksArray!)
-                if (error) == nil {
-                    if placemarksArray!.count > 0 {
-                        var addressString : String = ""
-                        guard let placemark = placemarksArray?[0] else {
-                            return
-                        }
-                        
-                        if let subThoroughfare = placemark.subThoroughfare {
-                            addressString = subThoroughfare + " "
-                        }
-             
-                        if let thoroughfare = placemark.thoroughfare  {
-                            addressString = addressString  + thoroughfare + ", "
-                        }
-
-                        if let postalCode = placemark.postalCode {
-                            addressString = addressString + postalCode + " "
-                        }
-                        
-                        if let locality = placemark.locality {
-                            addressString = addressString + locality + ", "
-                                        }
-                        
-                        if let administrativeArea = placemark.administrativeArea {
-                            addressString = addressString + administrativeArea + " "
-                                        }
-                        
-                        if let country = placemark.country {
-                            addressString = addressString + country
-                                        }
-                        
-                        handler(placemark.name ?? addressString, addressString)
-                    }
-                }
-
-            }
-    }
+    
 
 }
 

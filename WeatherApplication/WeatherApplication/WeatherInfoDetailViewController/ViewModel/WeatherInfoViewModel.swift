@@ -43,28 +43,41 @@ class WeatherInfoViewModel {
         
         var mainArr: [WeatherInfoModel] = []
         let main = weatherResponseModel.main
-        let infoModel1 = WeatherInfoModel(title: "Today's Temp" , subTitle: String(main.temp))
-        mainArr.append(infoModel1)
+        if let temp = main.temp {
+            let infoModel1 = WeatherInfoModel(title: "Today's Temp" , subTitle: String(temp))
+            mainArr.append(infoModel1)
+        }
         
-        let infoModel2 = WeatherInfoModel(title: "Min temp" , subTitle: String(main.tempMin))
-        mainArr.append(infoModel2)
+        if let tempMin = main.tempMin {
+            let infoModel2 = WeatherInfoModel(title: "Min temp" , subTitle: String(tempMin))
+            mainArr.append(infoModel2)
+        }
         
-        let infoModel3 = WeatherInfoModel(title: "Max temp" , subTitle: String(main.tempMax))
-        mainArr.append(infoModel3)
+        if let tempMax = main.tempMax {
+            let infoModel3 = WeatherInfoModel(title: "Max temp" , subTitle: String(tempMax))
+            mainArr.append(infoModel3)
+        }
         
-        let infoModel4 = WeatherInfoModel(title: "Feels like" , subTitle: String(main.feelsLike))
-        mainArr.append(infoModel4)
+        if let feelsLike = main.feelsLike {
+            let infoModel4 = WeatherInfoModel(title: "Feels like" , subTitle: String(feelsLike))
+            mainArr.append(infoModel4)
+        }
         
-        let infoModel5 = WeatherInfoModel(title: "Pressure" , subTitle: String(main.pressure))
-        mainArr.append(infoModel5)
+        if let pressue = main.pressure{
+            let infoModel5 = WeatherInfoModel(title: "Pressure" , subTitle: String(pressue))
+            mainArr.append(infoModel5)
+        }
         
-        let infoModel6 = WeatherInfoModel(title: "Humidity" , subTitle: String(main.humidity))
-        mainArr.append(infoModel6)
+        if let humidity = main.humidity {
+            let infoModel6 = WeatherInfoModel(title: "Humidity" , subTitle: String(humidity))
+            mainArr.append(infoModel6)
+        }
+        
         resultArr.append(mainArr)
         
         var weathers: [WeatherInfoModel] = []
         if let weather = weatherResponseModel.weather.first {
-            let infoModel = WeatherInfoModel(title: "Weather condition", subTitle: weather.weatherDescription)
+            let infoModel = WeatherInfoModel(title: "Weather condition", subTitle: weather.weatherDescription ?? "")
             weathers.append(infoModel)
         }
         resultArr.append(weathers)
@@ -72,10 +85,10 @@ class WeatherInfoViewModel {
         
         var winds: [WeatherInfoModel] = []
         if let windInfo = weatherResponseModel.wind {
-            let infoModel7 = WeatherInfoModel(title: "Wind Speed" , subTitle: String(windInfo.speed))
+            let infoModel7 = WeatherInfoModel(title: "Wind Speed" , subTitle: String(windInfo.speed ?? 0))
             winds.append(infoModel7)
             
-            let infoModel8 = WeatherInfoModel(title: "Degree" , subTitle: String(windInfo.deg))
+            let infoModel8 = WeatherInfoModel(title: "Degree" , subTitle: String(windInfo.deg ?? 0))
             winds.append(infoModel8)
         }
         resultArr.append(winds)
